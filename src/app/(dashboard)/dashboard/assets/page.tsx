@@ -1,127 +1,96 @@
-"use client";
-
-import { useState } from "react";
 import styles from "./assets.module.css";
+import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import ExportButton from "@/components/dashboard/ExportButton";
 
-const initialAssets = [
-  { id: "A-001", name: "برج الخزامى", type: "تجاري", sukuk: "١٢٣٤٥٦٧٨٩", area: "٢٥٠٠ م٢", value: "٨٥,٠٠٠,٠٠٠", status: "مؤجر", usage: "مكاتب" },
-  { id: "A-002", name: "مزرعة النخيل", type: "زراعي", sukuk: "٩٨٧٦٥٤٣٢١", area: "٥٠,٠٠٠ م٢", value: "١٢,٥٠٠,٠٠٠", status: "نشط", usage: "تمور" },
-  { id: "A-003", name: "عمارة العليا", type: "سكني", sukuk: "٤٥٦١٢٣٧٨٩", area: "١٢٠٠ م٢", value: "٣٢,٠٠٠,٠٠٠", status: "صيانة", usage: "شقق" },
-  { id: "A-004", name: "مستودعات السلي", type: "صناعي", sukuk: "٧٨٩٤٥٦١٢٣", area: "٤٠٠٠ م٢", value: "١٥,٠٠٠,٠٠٠", status: "شاغر", usage: "تخزين" },
-];
+export default async function AssetsPage() {
+  const supabase = await createClient();
+  const { data: assets } = await supabase.from("assets").select("*").order("created_at", { ascending: false });
 
-export default function AssetsPage() {
-  const [view, setView] = useState("list");
-  const [showQR, setShowQR] = useState<string | null>(null);
+  const formatCategory = (category: string) => {
+    switch (category) {
+      case "real_estate": return "عقاري";
+      case "agricultural": return "زراعي";
+      case "investment": return "مالي / أسهم";
+      case "cash": return "نقد";
+      default: return category;
+    }
+  };
 
   return (
     <div className="fade-in">
       <div className={styles.header}>
         <div className={styles.titleInfo}>
-          <h1>سجل الأصول العقارية الوقفية</h1>
-          <p>إدارة وتوثيق صكوك الأوقاف وتحليل أداء العقارات.</p>
+          <h1>سجل الأصول الوقفية</h1>
+          <p>إدارة وتوثيق صكوك الأوقاف العقارية، المحافظ المالية، والأصول النقدية.</p>
         </div>
         <div className={styles.actions}>
-          <button className={styles.secBtn}>تصدير البيانات</button>
-          <button className="btn-primary">إضافة أصل وقفي +</button>
+          <ExportButton data={assets || []} filename="سجل_الأصول" className={styles.secBtn} />
+          <Link href="/dashboard/assets/add" className="btn-primary" style={{ textDecoration: 'none' }}>إضافة أصل وقفي +</Link>
         </div>
       </div>
 
       <div className={`${styles.filters} glass-card`}>
         <div className={styles.search}>
           <span>🔍</span>
-          <input type="text" placeholder="بحث برقم الصك أو اسم العقار..." />
+          <input type="text" placeholder="بحث برقم الصك أو اسم الأصل..." />
         </div>
         <div className={styles.viewToggle}>
-          <button onClick={() => setView("list")} className={view === "list" ? styles.active : ""}>قائمة</button>
-          <button onClick={() => setView("map")} className={view === "map" ? styles.active : ""}>خريطة GIS</button>
+          <button className={styles.active}>قائمة</button>
+          <button>خريطة GIS</button>
         </div>
       </div>
 
-      {view === "list" ? (
-        <div className={`${styles.ledgerContainer} glass-card`}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>المعرف</th>
-                <th>اسم العقار</th>
-                <th>رقم الصك</th>
-                <th>النوع / الاستخدام</th>
-                <th>المساحة</th>
-                <th>القيمة التاريخية</th>
-                <th>الحالة</th>
-                <th>إجراءات</th>
+      <div className={`${styles.ledgerContainer} glass-card`}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>المعرف</th>
+              <th>اسم الأصل / العقار</th>
+              <th>التصنيف</th>
+              <th>الموقع / الحساب</th>
+              <th>القيمة (التقييم)</th>
+              <th>الحالة</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {assets && assets.length > 0 ? assets.map((asset) => (
+              <tr key={asset.id}>
+                <td><code className={styles.code}>{asset.id.split("-")[0]}...</code></td>
+                <td>
+                  <div className={styles.assetName}>
+                    <strong>{asset.name}</strong>
+                  </div>
+                </td>
+                <td>
+                  <div className={styles.typeCol}>
+                    <span className={styles.typeTag}>{formatCategory(asset.category)}</span>
+                  </div>
+                </td>
+                <td>{asset.location || "غير متوفر"}</td>
+                <td className={styles.price}>{Number(asset.valuation).toLocaleString()} ر.س</td>
+                <td>
+                  <span className={`${styles.status} ${styles[asset.status] || ''}`}>
+                    {asset.status === "active" ? "نشط" : asset.status}
+                  </span>
+                </td>
+                <td className={styles.tableActions}>
+                  <button title="QR Code">📱</button>
+                  <button title="تعديل">✏️</button>
+                  <button title="سجل الصيانة">🛠️</button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {initialAssets.map((asset) => (
-                <tr key={asset.id}>
-                  <td><code className={styles.code}>{asset.id}</code></td>
-                  <td>
-                    <div className={styles.assetName}>
-                      <strong>{asset.name}</strong>
-                    </div>
-                  </td>
-                  <td>{asset.sukuk}</td>
-                  <td>
-                    <div className={styles.typeCol}>
-                      <span className={styles.typeTag}>{asset.type}</span>
-                      <span className={styles.usageTag}>{asset.usage}</span>
-                    </div>
-                  </td>
-                  <td>{asset.area}</td>
-                  <td className={styles.price}>{asset.value} ر.س</td>
-                  <td>
-                    <span className={`${styles.status} ${styles[asset.status]}`}>
-                      {asset.status}
-                    </span>
-                  </td>
-                  <td className={styles.tableActions}>
-                    <button title="QR Code" onClick={() => setShowQR(asset.name)}>📱</button>
-                    <button title="تعديل">✏️</button>
-                    <button title="سجل الصيانة">🛠️</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className={`${styles.mapView} glass-card`}>
-          <div className={styles.mapPlaceholder}>
-            <div className={styles.mapOverlay}>
-              <h3>تكامل نظم المعلومات الجغرافية (GIS)</h3>
-              <p>يتم الآن عرض ٤ أصول وقفية على خريطة الرياض.</p>
-              <div className={styles.pins}>
-                <div className={styles.pin} style={{ top: '30%', left: '40%' }}>📍</div>
-                <div className={styles.pin} style={{ top: '50%', left: '60%' }}>📍</div>
-                <div className={styles.pin} style={{ top: '20%', left: '30%' }}>📍</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* QR Modal Mockup */}
-      {showQR && (
-        <div className={styles.modalBackdrop} onClick={() => setShowQR(null)}>
-          <div className={`${styles.qrModal} glass-card`} onClick={e => e.stopPropagation()}>
-            <h3>رمز تعريف الأصل (QR Code)</h3>
-            <p>{showQR}</p>
-            <div className={styles.qrVisual}>
-              {/* Mock QR Code SVG */}
-              <svg viewBox="0 0 100 100" width="150" height="150">
-                <rect width="100" height="100" fill="#fff" />
-                <path d="M10,10h30v30h-30z M60,10h30v30h-30z M10,60h30v30h-30z M45,45h10v10h-10z" fill="var(--color-primary)" />
-                <rect x="15" y="15" width="20" height="20" fill="#fff" />
-                <rect x="65" y="15" width="20" height="20" fill="#fff" />
-                <rect x="15" y="65" width="20" height="20" fill="#fff" />
-              </svg>
-            </div>
-            <button className="btn-primary" onClick={() => setShowQR(null)}>إغلاق</button>
-          </div>
-        </div>
-      )}
+            )) : (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                  لا توجد أصول مضافة بعد. يمكنك إضافة أصل نقدي أو عقاري أو محفظة أسهم لتفعيل الـ ERP.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

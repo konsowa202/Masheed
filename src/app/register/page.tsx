@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import styles from "../login/login.module.css";
 
@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const supabase = createClient();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import styles from "./Hero.module.css";
 
 export default function Hero() {
@@ -39,32 +40,32 @@ export default function Hero() {
             </div>
 
             <h1 className={styles.title}>
-              نحو أوقافٍ{" "}
-              <span className={styles.highlight}>مستدامة</span>
+              إدارة الأوقاف بذكاء{" "}
+              <span className={styles.highlight}>ونظام مالي</span>
               <br />
-              وإدارةٍ رقميةٍ متكاملة
+              متكامل (ERP & Tokenization)
             </h1>
 
             <p className={styles.subtitle}>
-              منصة <strong>مَشيد</strong> هي الحل المتكامل لإدارة الأصول الوقفية،
-              تنمية الموارد، وتحقيق أعلى معايير الحوكمة والامتثال
-              وفق <strong>رؤية ٢٠٣٠</strong>.
+              منصة <strong>مَشيد</strong> هي أول نظام ERP مبني خصيصاً لقطاع الأوقاف.
+              حوّل أوقافك إلى حصص مدمجة (Tokenized Waqf)، قم بأتمتة التوزيعات المالية للمستفيدين،
+              وحقق أعلى معايير الحوكمة والامتثال وفق <strong>رؤية ٢٠٣٠</strong>.
             </p>
 
             <div className={styles.ctaGroup}>
-              <button className="btn-primary">
+              <Link href="/register" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="17" height="17">
                   <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                 </svg>
-                طلب نسخة تجريبية
-              </button>
-              <button className="btn-outline">
+                ابدأ رحلة الرقمنة الآن
+              </Link>
+              <Link href="/login" className="btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="17" height="17">
                   <circle cx="12" cy="12" r="10"/>
                   <polygon points="10 8 16 12 10 16 10 8"/>
                 </svg>
-                استكشف النظام
-              </button>
+                تسجيل الدخول للنظام
+              </Link>
             </div>
 
             {/* Animated Counters */}

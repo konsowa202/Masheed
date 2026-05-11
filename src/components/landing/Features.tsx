@@ -4,23 +4,22 @@ import styles from "./Features.module.css";
 
 const features = [
   {
-    title: "رقمنة الأصول",
-    eng: "Asset Digitalization",
-    description: "توثيق شامل للصكوك، حدود الأراضي، والقيمة التاريخية. توليد QR code لكل أصل.",
+    title: "التوكينيزيشن وتقسيم الأسهم",
+    eng: "Waqf Tokenization",
+    description: "تجزئة الوقف إلى أسهم أو حصص ذكية، مما يسهل حساب وتوزيع الأرباح والريع على المستفيدين بشكل مؤتمت بالكامل.",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
-        <rect x="5" y="2" width="14" height="20" rx="2"/>
-        <line x1="9" y1="7" x2="15" y2="7"/>
-        <line x1="9" y1="11" x2="15" y2="11"/>
-        <line x1="9" y1="15" x2="12" y2="15"/>
+        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+        <polyline points="2 17 12 22 22 17" />
+        <polyline points="2 12 12 17 22 12" />
       </svg>
     ),
     color: "#8561AD",
   },
   {
-    title: "الشفافية المالية",
-    eng: "Financial Transparency",
-    description: "فصل 'الأصل' عن 'الريع' وأتمتة تقارير 'المصارف' بدقة شرعية ومحاسبية.",
+    title: "نظام ERP مالي متكامل",
+    eng: "Financial ERP System",
+    description: "فصل 'الأصل' عن 'الريع' وأتمتة التقارير المحاسبية والمصارف بدقة. يدعم الأوقاف الخيرية، الأهلية، والمشتركة.",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
         <line x1="12" y1="1" x2="12" y2="23"/>
@@ -30,9 +29,9 @@ const features = [
     color: "#10B981",
   },
   {
-    title: "الامتثال النظامي",
+    title: "الامتثال والفوترة (ZATCA)",
     eng: "Legal Compliance",
-    description: "تكامل مع الهيئة العامة للأوقاف، وزارة العدل، وZATCA Phase 2 الإلكترونية.",
+    description: "تكامل سلس مع الهيئة العامة للأوقاف (GAW)، وهيئة الزكاة والضريبة (ZATCA Phase 2).",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -42,9 +41,9 @@ const features = [
     color: "#3B82F6",
   },
   {
-    title: "إدارة المستفيدين",
-    eng: "Beneficiary Management",
-    description: "قاعدة بيانات متكاملة للمستفيدين وأتمتة عمليات الصرف والدعم الخيري.",
+    title: "بوابة المستفيدين والمحافظ",
+    eng: "Beneficiary Wallets",
+    description: "محافظ رقمية للمستفيدين، إشعارات فورية بالإيداعات، ولوحة تحكم خاصة لكل مستفيد لمتابعة الأسهم.",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>

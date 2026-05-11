@@ -1,78 +1,72 @@
-"use client";
+import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import ExportButton from "@/components/dashboard/ExportButton";
+import styles from "../assets/assets.module.css"; 
 
-import styles from "./finance.module.css";
+export default async function FinancePage() {
+  const supabase = await createClient();
+  const { data: transactions } = await supabase
+    .from("transactions")
+    .select("*, assets(name)")
+    .order("created_at", { ascending: false });
 
-const ledgerItems = [
-  { id: "TX-901", date: "2026-04-15", type: "إيراد", source: "عمارة الخزامى", category: "ريع", amount: "+ 45,000", status: "مكتمل" },
-  { id: "TX-902", date: "2026-04-12", type: "مصرف", source: "جمعية الأيتام", category: "توزيع", amount: "- 30,000", status: "قيد المعالجة" },
-  { id: "TX-903", date: "2026-04-10", type: "صيانة", source: "مزرعة النخيل", category: "مصاريف", amount: "- 12,500", status: "مكتمل" },
-  { id: "TX-904", date: "2026-04-05", type: "استثمار", source: "محفظة الأسهم", category: "أصل", amount: "+ 150,000", status: "مكتمل" },
-];
+  const formatType = (type: string) => {
+    switch (type) {
+      case "income": return "إيراد (Ri'a)";
+      case "expense": return "مصروف (صيانة/إدارة)";
+      case "distribution": return "توزيع (للمستفيدين)";
+      default: return type;
+    }
+  };
 
-export default function FinancePage() {
   return (
     <div className="fade-in">
       <div className={styles.header}>
-        <h1 className={styles.title}>المحاسبة الوقفية والمصارف</h1>
-        <p className={styles.subtitle}>تتبع التدفقات المالية وفصل ريع الوقف عن أصله شرعياً.</p>
-      </div>
-
-      <div className={styles.summaryGrid}>
-        <div className={`${styles.summaryCard} glass-card`}>
-          <span className={styles.summaryLabel}>إجمالي أصل الوقف (Asl)</span>
-          <span className={styles.summaryValue}>١٤٥,٠٠٠,٠٠٠ ر.س</span>
-          <div className={styles.badgeLabel}>القيمة الدفترية</div>
+        <div className={styles.titleInfo}>
+          <h1>المالية والمصارف (دفتر الأستاذ)</h1>
+          <p>إدارة وتوثيق الإيرادات والمصروفات والتوزيعات النقدية للأوقاف.</p>
         </div>
-        <div className={`${styles.summaryCard} glass-card`}>
-          <span className={styles.summaryLabel}>الريع المتاح للتوزيع (Ri'a)</span>
-          <span className={styles.summaryValue}>٢,٤٥٠,٠٠٠ ر.س</span>
-          <div className={`${styles.badgeLabel} ${styles.primaryBadge}`}>قابل للصرف</div>
-        </div>
-        <div className={`${styles.summaryCard} glass-card`}>
-          <span className={styles.summaryLabel}>المصارف المعتمدة</span>
-          <span className={styles.summaryValue}>١٢ مصرفاً</span>
-          <div className={styles.badgeLabel}>حسب شروط الواقف</div>
+        <div className={styles.actions}>
+          <ExportButton data={transactions || []} filename="سجل_المالية" className={styles.secBtn} />
+          <Link href="/dashboard/finance/add" className="btn-primary" style={{ textDecoration: 'none' }}>تسجيل معاملة +</Link>
         </div>
       </div>
 
-      <div className={`${styles.ledgerContainer} glass-card`}>
-        <div className={styles.ledgerHeader}>
-          <h3>دفتر الأستاذ العام</h3>
-          <div className={styles.ledgerActions}>
-            <button className={styles.exportBtn}>تصدير PDF</button>
-            <button className="btn-primary">إضافة حركة مالية</button>
-          </div>
-        </div>
-        
+      <div className={`${styles.ledgerContainer} glass-card`} style={{ marginTop: '2rem' }}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>المعرف</th>
-              <th>التاريخ</th>
+              <th>رقم المعاملة</th>
               <th>النوع</th>
-              <th>المصدر/الجهة</th>
-              <th>التصنيف</th>
-              <th>المبلغ</th>
-              <th>الحالة</th>
+              <th>المبلغ (ر.س)</th>
+              <th>الأصل المرتبط</th>
+              <th>الوصف</th>
+              <th>التاريخ</th>
             </tr>
           </thead>
           <tbody>
-            {ledgerItems.map((item) => (
-              <tr key={item.id}>
-                <td><code className={styles.code}>{item.id}</code></td>
-                <td>{item.date}</td>
-                <td>{item.type}</td>
-                <td>{item.source}</td>
-                <td><span className={styles.categoryBadge}>{item.category}</span></td>
-                <td className={item.amount.startsWith('+') ? styles.positive : styles.negative}>
-                  {item.amount}
-                </td>
+            {transactions && transactions.length > 0 ? transactions.map((t) => (
+              <tr key={t.id}>
+                <td><code className={styles.code}>{t.id.split("-")[0]}</code></td>
                 <td>
-                  <span className={`${styles.statusDot} ${item.status === 'مكتمل' ? styles.done : styles.pending}`}></span>
-                  {item.status}
+                  <span className={`${styles.status} ${t.type === 'income' ? styles.active : t.type === 'expense' ? styles.suspended : ''}`}>
+                    {formatType(t.type)}
+                  </span>
+                </td>
+                <td style={{ color: t.type === 'income' ? '#10B981' : '#EF4444', fontWeight: 'bold' }}>
+                  {t.type === 'income' ? '+' : '-'}{Number(t.amount).toLocaleString()}
+                </td>
+                <td>{(t.assets as any)?.name || "—"}</td>
+                <td>{t.description || "—"}</td>
+                <td>{new Date(t.transaction_date).toLocaleDateString("ar-SA")}</td>
+              </tr>
+            )) : (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                  لا توجد معاملات مالية بعد. قم بتسجيل الإيرادات أو المصروفات أولاً.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

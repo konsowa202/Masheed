@@ -20,8 +20,8 @@ const menuItems = [
   },
   {
     id: "assets",
-    label: "الأصول العقارية",
-    labelEn: "Real Estate",
+    label: "سجل الأصول",
+    labelEn: "Assets Log",
     path: "/dashboard/assets",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -30,6 +30,7 @@ const menuItems = [
       </svg>
     ),
   },
+
   {
     id: "finance",
     label: "المالية والمصارف",
@@ -46,7 +47,7 @@ const menuItems = [
     id: "audit",
     label: "الرقابة والامتثال",
     labelEn: "Compliance",
-    path: "/dashboard/audit",
+    path: "/dashboard/compliance",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -56,7 +57,7 @@ const menuItems = [
   },
   {
     id: "beneficiary",
-    label: "إدارة المستفيدين",
+    label: "المستفيدون والتوكينيزيشن",
     labelEn: "Beneficiaries",
     path: "/dashboard/beneficiary",
     icon: (
@@ -85,11 +86,10 @@ const menuItems = [
   },
 ];
 
-const waqfs = ["وقف الملك فهد", "جمعية البر الخيرية", "وقف الوالدين", "وقف التعليم"];
-
-export default function Sidebar() {
+export default function Sidebar({ userWaqfs = [] }: { userWaqfs?: any[] }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [currentWaqf, setCurrentWaqf] = useState(waqfs[0]);
+  const waqfList = userWaqfs.length > 0 ? userWaqfs : [{ id: 'none', name: 'لا يوجد أوقاف' }];
+  const [currentWaqf, setCurrentWaqf] = useState(waqfList[0]?.id);
   const pathname = usePathname();
 
   return (
@@ -125,7 +125,7 @@ export default function Sidebar() {
             value={currentWaqf}
             onChange={(e) => setCurrentWaqf(e.target.value)}
           >
-            {waqfs.map(w => <option key={w}>{w}</option>)}
+            {waqfList.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ flexShrink: 0, opacity: 0.5 }}>
             <polyline points="6 9 12 15 18 9"/>

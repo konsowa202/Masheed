@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import styles from "./login.module.css";
 
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +23,7 @@ export default function LoginPage() {
       email,
       password,
     });
+
 
     if (authError) {
       setError("بيانات الدخول غير صحيحة. يرجى المحاولة مجدداً.");

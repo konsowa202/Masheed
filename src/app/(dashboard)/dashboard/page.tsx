@@ -1,77 +1,14 @@
-"use client";
-
 import styles from "./page.module.css";
-
-const stats = [
-  {
-    label: "إجمالي قيمة الأصول",
-    value: "٤٥٠,٠٠٠,٠٠٠",
-    suffix: "ر.س",
-    change: "+٥.٢٪",
-    positive: true,
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
-        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-      </svg>
-    ),
-    color: "#8561AD",
-  },
-  {
-    label: "ريع الأوقاف (Ri'a)",
-    value: "١٢,٤٠٠,٠٠٠",
-    suffix: "ر.س",
-    change: "+١٢٪",
-    positive: true,
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
-        <line x1="12" y1="1" x2="12" y2="23"/>
-        <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
-      </svg>
-    ),
-    color: "#10B981",
-  },
-  {
-    label: "المصارف الموزعة",
-    value: "٩,٢٠٠,٠٠٠",
-    suffix: "ر.س",
-    change: "+٨٪",
-    positive: true,
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
-        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-      </svg>
-    ),
-    color: "#3B82F6",
-  },
-  {
-    label: "الأصول تحت الصيانة",
-    value: "١٤",
-    suffix: "عقاراً",
-    change: "-٢",
-    positive: false,
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
-        <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
-      </svg>
-    ),
-    color: "#F59E0B",
-  },
-];
-
-const activities = [
-  { id: 1, user: "أحمد العتيبي", action: "تحديث صك عقار", target: "عمارة العليا ٠١", time: "قبل ١٠ دقائق", type: "legal" },
-  { id: 2, user: "النظام", action: "توليد فاتورة ضريبية", target: "ZATCA Integration", time: "قبل ساعة", type: "system" },
-  { id: 3, user: "سارة خالد", action: "اعتماد صرف ريع", target: "جمعية الأيتام", time: "قبل ٣ ساعات", type: "finance" },
-  { id: 4, user: "محمد الشهراني", action: "إضافة أصل جديد", target: "مستودعات السلي", time: "أمس", type: "asset" },
-];
+import { createClient } from "@/lib/supabase/server";
 
 const typeColors: Record<string, string> = {
   legal: "#8561AD",
   system: "#3B82F6",
   finance: "#10B981",
   asset: "#F59E0B",
+  INSERT: "#10B981",
+  UPDATE: "#3B82F6",
+  DELETE: "#EF4444",
 };
 
 const maintenanceTasks = [
@@ -80,14 +17,113 @@ const maintenanceTasks = [
   { priority: "مجدول", label: "صيانة دورية - مزرعة النخيل", color: "#3B82F6", bg: "#EFF6FF" },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Fetch Profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user?.id)
+    .single();
+
+  const firstName = profile?.full_name ? profile.full_name.split(" ")[0] : "مستخدم";
+  
+  const today = new Date().toLocaleDateString("ar-SA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  // Fetch Assets Sum
+  const { data: assets } = await supabase.from("assets").select("valuation");
+  const totalAssets = assets?.reduce((sum, item) => sum + Number(item.valuation || 0), 0) || 0;
+
+  // Fetch Transactions Sum
+  const { data: transactions } = await supabase.from("transactions").select("amount, type");
+  const totalIncome = transactions?.filter(t => t.type === 'income').reduce((sum, item) => sum + Number(item.amount || 0), 0) || 0;
+  const totalDist = transactions?.filter(t => t.type === 'distribution').reduce((sum, item) => sum + Number(item.amount || 0), 0) || 0;
+
+  // Fetch Audit Logs
+  const { data: auditLogs } = await supabase
+    .from("audit_logs")
+    .select(`
+      id,
+      action,
+      entity_type,
+      created_at,
+      profiles ( full_name )
+    `)
+    .order("created_at", { ascending: false })
+    .limit(4);
+
+  const stats = [
+    {
+      label: "إجمالي قيمة الأصول",
+      value: totalAssets.toLocaleString(),
+      suffix: "ر.س",
+      change: "+٠٪",
+      positive: true,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+        </svg>
+      ),
+      color: "#8561AD",
+    },
+    {
+      label: "ريع الأوقاف (Ri'a)",
+      value: totalIncome.toLocaleString(),
+      suffix: "ر.س",
+      change: "+٠٪",
+      positive: true,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+      ),
+      color: "#10B981",
+    },
+    {
+      label: "المصارف الموزعة",
+      value: totalDist.toLocaleString(),
+      suffix: "ر.س",
+      change: "+٠٪",
+      positive: true,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+      ),
+      color: "#3B82F6",
+    },
+    {
+      label: "إجمالي الأصول",
+      value: assets?.length.toLocaleString() || "٠",
+      suffix: "عقاراً/أصلاً",
+      change: "",
+      positive: true,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
+          <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+        </svg>
+      ),
+      color: "#F59E0B",
+    },
+  ];
+
   return (
     <div className={`${styles.page} fade-in`}>
       {/* Header */}
       <div className={styles.pageHeader}>
         <div>
-          <h1 className={styles.greeting}>صباح الخير، فيصل</h1>
-          <p className={styles.date}>إليك ملخص أداء الأوقاف — السبت، ١٩ أبريل ٢٠٢٦</p>
+          <h1 className={styles.greeting}>صباح الخير، {firstName}</h1>
+          <p className={styles.date}>إليك ملخص أداء الأوقاف — {today}</p>
         </div>
         <div className={styles.complianceChip}>
           <span className={styles.complianceDot}></span>
@@ -103,21 +139,23 @@ export default function DashboardPage() {
               <div className={styles.statIcon} style={{ background: stat.color + "18", color: stat.color }}>
                 {stat.icon}
               </div>
-              <span
-                className={styles.statChange}
-                style={{ color: stat.positive ? "#10B981" : "#EF4444", background: stat.positive ? "#ECFDF5" : "#FEF2F2" }}
-              >
-                {stat.positive ? (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11">
-                    <polyline points="18 15 12 9 6 15"/>
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                )}
-                {stat.change}
-              </span>
+              {stat.change && (
+                <span
+                  className={styles.statChange}
+                  style={{ color: stat.positive ? "#10B981" : "#EF4444", background: stat.positive ? "#ECFDF5" : "#FEF2F2" }}
+                >
+                  {stat.positive ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11">
+                      <polyline points="18 15 12 9 6 15"/>
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  )}
+                  {stat.change}
+                </span>
+              )}
             </div>
             <div className={styles.statValue}>{stat.value} <small>{stat.suffix}</small></div>
             <div className={styles.statLabel}>{stat.label}</div>
@@ -218,28 +256,24 @@ export default function DashboardPage() {
         <div className={`${styles.activityCard} glass-card`}>
           <div className={styles.cardHeader}>
             <h3>سجل العمليات الأخيرة</h3>
-            <button className={styles.refreshBtn}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
-                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-              </svg>
-            </button>
           </div>
           <div className={styles.activityList}>
-            {activities.map((act) => (
+            {auditLogs && auditLogs.length > 0 ? auditLogs.map((act) => (
               <div key={act.id} className={styles.activityItem}>
                 <div
                   className={styles.actDot}
-                  style={{ background: typeColors[act.type] }}
+                  style={{ background: typeColors[act.action] || "#8561AD" }}
                 ></div>
                 <div className={styles.actContent}>
                   <p className={styles.actText}>
-                    <strong>{act.user}</strong> — {act.action} في <em>{act.target}</em>
+                    <strong>{(act.profiles as any)?.full_name || "النظام"}</strong> — {act.action} في <em>{act.entity_type}</em>
                   </p>
-                  <span className={styles.actTime}>{act.time}</span>
+                  <span className={styles.actTime}>{new Date(act.created_at).toLocaleString("ar-SA")}</span>
                 </div>
               </div>
-            ))}
+            )) : (
+              <p style={{ textAlign: 'center', color: '#888', fontSize: '0.875rem' }}>لا توجد عمليات مسجلة بعد</p>
+            )}
           </div>
         </div>
 
