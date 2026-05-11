@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import { addTransaction } from "@/app/actions";
 
 export default async function AddTransactionPage() {

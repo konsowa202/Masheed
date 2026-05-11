@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
 import { addUserProfile } from "@/app/actions";
 
 export default async function AddUserPage() {

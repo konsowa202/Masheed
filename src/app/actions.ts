@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function addAsset(formData: FormData) {
   const supabase = await createClient();
@@ -100,13 +101,13 @@ export async function addTransaction(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) return { error: "غير مصرح لك" };
+  if (!user) redirect("/login");
 
   const { data: profile } = await supabase.from("profiles").select("waqf_id").eq("id", user.id).single();
   let waqfId = profile?.waqf_id;
 
   if (!waqfId) {
-    return { error: "لم يتم العثور على وقف مرتبط بحسابك." };
+    redirect("/dashboard/finance?error=" + encodeURIComponent("لم يتم العثور على وقف مرتبط بحسابك."));
   }
 
   const type = formData.get("type") as string;
@@ -124,24 +125,26 @@ export async function addTransaction(formData: FormData) {
     category: type,
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    redirect("/dashboard/finance?error=" + encodeURIComponent(error.message));
+  }
 
   revalidatePath("/dashboard/finance");
   revalidatePath("/dashboard");
-  return { success: true };
+  redirect("/dashboard/finance?success=1");
 }
 
 export async function addUserProfile(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) return { error: "غير مصرح لك" };
+  if (!user) redirect("/login");
 
   const { data: profile } = await supabase.from("profiles").select("waqf_id").eq("id", user.id).single();
   let waqfId = profile?.waqf_id;
 
   if (!waqfId) {
-    return { error: "لم يتم العثور على وقف مرتبط بحسابك." };
+    redirect("/dashboard/compliance?error=" + encodeURIComponent("لم يتم العثور على وقف مرتبط بحسابك."));
   }
 
   const fullName = formData.get("full_name") as string;
@@ -154,8 +157,10 @@ export async function addUserProfile(formData: FormData) {
     role: role as any
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    redirect("/dashboard/compliance?error=" + encodeURIComponent(error.message));
+  }
 
   revalidatePath("/dashboard/compliance");
-  return { success: true };
+  redirect("/dashboard/compliance?success=1");
 }
