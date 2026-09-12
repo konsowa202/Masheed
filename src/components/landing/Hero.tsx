@@ -41,7 +41,7 @@ export default function Hero() {
             strokeDashoffset: 0, 
             strokeWidth: 1, 
             stroke: "rgba(133, 97, 173, 0.15)", // Faint background color
-            y: "105%", 
+            y: "50%", 
             opacity: 0.6
           }}
           transition={{
