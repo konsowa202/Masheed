@@ -26,7 +26,7 @@ export default function Hero() {
           style={{
             fontFamily: "var(--font-heading), 'Cairo', sans-serif",
             fontWeight: 900,
-            fontSize: "clamp(120px, 26vw, 400px)"
+            fontSize: "35vw"
           }}
           fill="transparent"
           strokeDasharray="4000"
@@ -34,14 +34,14 @@ export default function Hero() {
             strokeDashoffset: 4000, 
             strokeWidth: 4, 
             stroke: "rgba(133, 97, 173, 0.4)", // Primary color with opacity
-            y: "40%", 
+            y: "70%", 
             opacity: 1 
           }}
           animate={{ 
             strokeDashoffset: 0, 
             strokeWidth: 1, 
             stroke: "rgba(133, 97, 173, 0.15)", // Faint background color
-            y: "50%", 
+            y: "105%", 
             opacity: 0.6
           }}
           transition={{

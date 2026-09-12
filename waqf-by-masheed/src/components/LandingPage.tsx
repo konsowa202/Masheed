@@ -30,21 +30,21 @@ function Hero() {
           textAnchor="middle"
           dominantBaseline="middle"
           className="font-display font-black"
-          style={{ fontSize: "26vw" }}
+          style={{ fontSize: "35vw" }}
           fill="transparent"
           strokeDasharray="4000"
           initial={{ 
             strokeDashoffset: 4000, 
             strokeWidth: 4, 
             stroke: "var(--color-foreground)",
-            y: "40%", 
+            y: "70%", 
             opacity: 1 
           }}
           animate={{ 
             strokeDashoffset: 0, 
             strokeWidth: 1, 
             stroke: "var(--color-border)",
-            y: "115%", // Moved to bottom to match original `-bottom-6`
+            y: "105%", 
             opacity: 0.6
           }}
           transition={{
@@ -55,7 +55,7 @@ function Hero() {
             opacity: { duration: 1.2, delay: 1.8, ease: "easeInOut" }
           }}
         >
-          وقف
+          مشيد
         </motion.text>
       </svg>
 
