@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Building, Landmark, Briefcase, CheckCircle, FileText, ChevronLeft, ShieldCheck, BarChart3, Banknote } from "lucide-react";
 
 export default function HowItWorks() {
-  const scrollVariants = {
+  const scrollVariants: any = {
     hidden: { opacity: 0, y: 50, rotateX: -15, scale: 0.9 },
     visible: { 
       opacity: 1, 
@@ -16,7 +16,7 @@ export default function HowItWorks() {
     }
   };
 
-  const floatVariants = {
+  const floatVariants: any = {
     float1: { y: [0, -12, 0], transition: { duration: 4, repeat: Infinity, ease: "easeInOut" } },
     float2: { y: [0, 10, 0], transition: { duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 } },
     float3: { y: [0, -8, 0], transition: { duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 } }
