@@ -1,28 +1,34 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import styles from "../assets/assets.module.css"; 
+import styles from "../assets/assets.module.css";
+import { getWaqfScope, scopeQuery } from "@/lib/waqf-scope";
 
 export default async function CompliancePage() {
   const supabase = await createClient();
-  
-  // Fetch Users (Profiles) in the same Waqf
-  const { data: users } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: myProfile } = await supabase
     .from("profiles")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("role, is_platform_admin")
+    .eq("id", user?.id)
+    .single();
+  const isAdmin = myProfile?.role === "admin";
+  const scope = myProfile?.is_platform_admin ? await getWaqfScope() : null;
+
+  // Fetch Users (Profiles) in the selected Waqf
+  const { data: users } = await scopeQuery(
+    supabase.from("profiles").select("*"), scope
+  ).order("created_at", { ascending: false });
 
   // Fetch Audit Logs
-  const { data: auditLogs } = await supabase
-    .from("audit_logs")
-    .select(`
+  const { data: auditLogs } = await scopeQuery(
+    supabase.from("audit_logs").select(`
       id,
       action,
       entity_type,
       created_at,
       profiles ( full_name )
-    `)
-    .order("created_at", { ascending: false })
-    .limit(20);
+    `), scope
+  ).order("created_at", { ascending: false }).limit(20);
 
   const formatRole = (role: string) => {
     switch(role) {
@@ -51,7 +57,9 @@ export default async function CompliancePage() {
           <p>إدارة الصلاحيات وتتبع كافة التغييرات التي تمت داخل النظام (ممتثل لمتطلبات هيئة الأوقاف).</p>
         </div>
         <div className={styles.actions}>
-          <Link href="/dashboard/compliance/add" className="btn-primary" style={{ textDecoration: 'none' }}>إضافة مستخدم (صلاحية) +</Link>
+          {isAdmin && (
+            <Link href="/dashboard/compliance/add" className="btn-primary" style={{ textDecoration: 'none' }}>إضافة مستخدم (صلاحية) +</Link>
+          )}
         </div>
       </div>
 

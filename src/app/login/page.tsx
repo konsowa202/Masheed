@@ -144,7 +144,7 @@ export default function LoginPage() {
             <p>ليس لديك حساب؟ <Link href="/register" className={styles.supabase}>إنشاء حساب جديد</Link></p>
             <p style={{ marginTop: '0.5rem' }}>الأمان مدعوم بـ <span className={styles.supabase}>Supabase</span> &nbsp;|&nbsp; رؤية ٢٠٣٠</p>
             <div className={styles.links}>
-              <a href="#">نسيت كلمة المرور؟</a>
+              <Link href="/forgot-password">نسيت كلمة المرور؟</Link>
               <a href="#">الدعم الفني</a>
             </div>
           </div>
